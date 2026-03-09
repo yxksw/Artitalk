@@ -1,4 +1,4 @@
-# Artitalk MongoDB 迁移指南
+# Artitalk 迁移指南
 
 ## 已完成的后端 API 服务
 
