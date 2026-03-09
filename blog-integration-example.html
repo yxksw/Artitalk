@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>博客集成 Artitalk MongoDB 版本示例</title>
+    <style>
+        /* 基础样式 */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        /* Artitalk 容器样式 */
+        #artitalk-container {
+            margin: 30px 0;
+        }
+        
+        /* 加载提示 */
+        .artitalk-loading {
+            text-align: center;
+            padding: 20px;
+            color: #999;
+        }
+    </style>
+</head>
+<body>
+    <h1>我的博客文章</h1>
+    <p>这是一篇示例博客文章...</p>
+    
+    <!-- Artitalk 说说区域 -->
+    <div id="artitalk-container">
+        <h2>💬 我的说说</h2>
+        <div id="artitalk-main"></div>
+    </div>
+
+    <!-- 
+        在博客中使用 Artitalk MongoDB 版本
+        
+        步骤：
+        1. 先引入 API 客户端（设置你的后端 API 地址）
+        2. 引入 Artitalk 的 CSS 和 JS（修改后的版本）
+        3. 初始化 Artitalk
+    -->
+    
+    <!-- 步骤 1: 配置并引入 API 客户端 -->
+    <script>
+        // ⚠️ 重要：修改为你的后端 API 地址
+        // 本地测试：http://localhost:3000/api
+        // 生产环境：https://your-domain.com/api
+        var apiUrl = 'http://localhost:3000/api';
+    </script>
+    <script src="https://your-cdn-domain.com/artitalk/api-client.js"></script>
+    
+    <!-- 步骤 2: 引入 Artitalk 样式和脚本 -->
+    <!-- 你需要将修改后的 main.js 上传到 CDN 或你的服务器 -->
+    <link rel="stylesheet" href="https://your-cdn-domain.com/artitalk/artitalk.css">
+    <script src="https://your-cdn-domain.com/artitalk/artitalk-mongodb.js"></script>
+    
+    <!-- 步骤 3: 初始化 Artitalk -->
+    <script>
+        // 等待页面加载完成
+        document.addEventListener('DOMContentLoaded', function() {
+            // 初始化 Artitalk
+            new Artitalk({
+                // 容器元素 ID
+                el: '#artitalk-main',
+                
+                // 每页显示的说说数量
+                pageSize: 5,
+                
+                // 语言设置
+                lang: 'zh',
+                
+                // 颜色配置（可选）
+                color1: 'RGBA(255, 125, 73, 0.75)',
+                color2: '#9BCD9B',
+                color3: 'white',
+                
+                // 头像占位图（可选）
+                avatarPla: 'https://fastly.jsdelivr.net/gh/drew233/cdn/logol.png',
+                
+                // 说说输入框占位文字（可选）
+                shuoPla: '分享你的新鲜事...',
+                
+                // 登录回调
+                onLogin: function(username) {
+                    console.log('用户登录:', username);
+                },
+                
+                // 发布说说回调
+                onShuoPublished: function(username, content) {
+                    console.log('发布成功:', username, content);
+                }
+            });
+        });
+    </script>
+    
+    <!-- 
+        ============================================
+        简化版：如果你只需要显示说说列表（不需要发布功能）
+        ============================================
+    -->
+    
+    <hr style="margin: 50px 0;">
+    
+    <h2>简化版：只显示说说列表</h2>
+    <div id="simple-shuoshuo-list"></div>
+    
+    <script>
+        // 简化版：直接调用 API 获取说说列表
+        async function loadSimpleShuoshuoList() {
+            const container = document.getElementById('simple-shuoshuo-list');
+            container.innerHTML = '<p class="artitalk-loading">加载中...</p>';
+            
+            try {
+                // 直接使用 fetch 调用 API
+                const response = await fetch('http://localhost:3000/api/shuoshuo?page=0&pageSize=10');
+                const shuoshuos = await response.json();
+                
+                if (shuoshuos.length === 0) {
+                    container.innerHTML = '<p>暂无说说</p>';
+                    return;
+                }
+                
+                let html = '<div style="margin: 20px 0;">';
+                shuoshuos.forEach(item => {
+                    const date = new Date(item.createdAt).toLocaleString('zh-CN');
+                    html += `
+                        <div style="
+                            background: #f9f9f9;
+                            padding: 15px;
+                            margin: 10px 0;
+                            border-radius: 8px;
+                            border-left: 4px solid #4CAF50;
+                        ">
+                            <div style="margin-bottom: 10px;">
+                                ${item.attributes.atContentHtml}
+                            </div>
+                            <div style="
+                                color: #999;
+                                font-size: 12px;
+                                display: flex;
+                                justify-content: space-between;
+                            ">
+                                <span>${item.user ? item.user.username : '匿名'}</span>
+                                <span>${item.attributes.userOs} | ${date}</span>
+                            </div>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+                container.innerHTML = html;
+                
+            } catch (error) {
+                container.innerHTML = '<p style="color: red;">加载失败: ' + error.message + '</p>';
+            }
+        }
+        
+        // 页面加载时获取列表
+        loadSimpleShuoshuoList();
+    </script>
+</body>
+</html>
