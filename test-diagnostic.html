@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API 连接诊断 - artitalk.050815.xyz</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 { color: #333; }
+        .test-item {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .success { background: #d4edda; border-color: #c3e6cb; }
+        .error { background: #f8d7da; border-color: #f5c6cb; }
+        .warning { background: #fff3cd; border-color: #ffeeba; }
+        button {
+            background: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover { background: #0056b3; }
+        pre {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        code {
+            background: #e9ecef;
+            padding: 2px 5px;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 API 连接诊断工具</h1>
+        <p>后端地址: <code>https://artitalk.050815.xyz</code></p>
+        
+        <div id="tests"></div>
+        
+        <div style="margin-top: 20px;">
+            <button onclick="runAllTests()">🔄 重新测试</button>
+            <button onclick="testWithNoCors()">🔓 测试无 CORS 模式</button>
+        </div>
+        
+        <div id="results"></div>
+    </div>
+
+    <script>
+        const API_URL = 'https://artitalk.050815.xyz';
+        
+        async function runAllTests() {
+            const testsDiv = document.getElementById('tests');
+            testsDiv.innerHTML = '<p>正在测试...</p>';
+            
+            // 测试 1: 基本连接
+            await testBasicConnection();
+            
+            // 测试 2: API 端点
+            await testAPIEndpoint();
+            
+            // 测试 3: CORS 预检
+            await testCORSPreflight();
+            
+            // 测试 4: POST 请求
+            await testPOSTRequest();
+        }
+        
+        async function testBasicConnection() {
+            const result = await addTest('基本连接测试', async () => {
+                const response = await fetch(`${API_URL}/`, {
+                    method: 'GET',
+                    mode: 'cors'
+                });
+                return response.ok;
+            });
+        }
+        
+        async function testAPIEndpoint() {
+            const result = await addTest('API 端点测试 (/api/shuoshuo)', async () => {
+                const response = await fetch(`${API_URL}/api/shuoshuo?page=0&pageSize=1`, {
+                    method: 'GET',
+                    mode: 'cors',
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+                const data = await response.json();
+                return { ok: response.ok, data: data };
+            });
+        }
+        
+        async function testCORSPreflight() {
+            const result = await addTest('CORS 预检测试', async () => {
+                const response = await fetch(`${API_URL}/api/shuoshuo`, {
+                    method: 'OPTIONS',
+                    mode: 'cors',
+                    headers: {
+                        'Origin': window.location.origin,
+                        'Access-Control-Request-Method': 'GET'
+                    }
+                });
+                return {
+                    ok: response.ok,
+                    headers: {
+                        'access-control-allow-origin': response.headers.get('access-control-allow-origin'),
+                        'access-control-allow-methods': response.headers.get('access-control-allow-methods')
+                    }
+                };
+            });
+        }
+        
+        async function testPOSTRequest() {
+            const result = await addTest('POST 请求测试 (注册)', async () => {
+                const response = await fetch(`${API_URL}/api/auth/register`, {
+                    method: 'POST',
+                    mode: 'cors',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username: 'test_' + Date.now(),
+                        password: 'test123456'
+                    })
+                });
+                const data = await response.json();
+                return { ok: response.ok, status: response.status, data: data };
+            });
+        }
+        
+        async function testWithNoCors() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<p>正在测试无 CORS 模式...</p>';
+            
+            try {
+                const response = await fetch(`${API_URL}/api/shuoshuo?page=0&pageSize=1`, {
+                    method: 'GET',
+                    mode: 'no-cors'
+                });
+                
+                resultsDiv.innerHTML = `
+                    <div class="test-item warning">
+                        <h3>无 CORS 模式测试结果</h3>
+                        <p>状态: ${response.status} (${response.type})</p>
+                        <p>说明: 无 CORS 模式下无法读取响应内容，但请求可能已发送</p>
+                    </div>
+                `;
+            } catch (error) {
+                resultsDiv.innerHTML = `
+                    <div class="test-item error">
+                        <h3>无 CORS 模式测试失败</h3>
+                        <p>错误: ${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+        
+        async function addTest(name, testFn) {
+            const testsDiv = document.getElementById('tests');
+            const testDiv = document.createElement('div');
+            testDiv.className = 'test-item';
+            testDiv.innerHTML = `<h3>⏳ ${name}</h3><p>测试中...</p>`;
+            testsDiv.appendChild(testDiv);
+            
+            try {
+                const result = await testFn();
+                const isOk = result === true || (result && result.ok);
+                
+                testDiv.className = 'test-item ' + (isOk ? 'success' : 'error');
+                testDiv.innerHTML = `
+                    <h3>${isOk ? '✅' : '❌'} ${name}</h3>
+                    <pre>${JSON.stringify(result, null, 2)}</pre>
+                `;
+                return result;
+            } catch (error) {
+                testDiv.className = 'test-item error';
+                testDiv.innerHTML = `
+                    <h3>❌ ${name}</h3>
+                    <p><strong>错误:</strong> ${error.message}</p>
+                    <pre>${error.stack}</pre>
+                `;
+                return { error: error.message };
+            }
+        }
+        
+        // 页面加载时自动运行测试
+        window.onload = runAllTests;
+    </script>
+</body>
+</html>

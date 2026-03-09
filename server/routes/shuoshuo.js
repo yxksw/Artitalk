@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Shuoshuo = require('../models/Shuoshuo');
 const auth = require('../middleware/auth');
+const adminAuth = require('../middleware/admin');
 
 router.get('/', async (req, res) => {
     try {
@@ -32,7 +33,7 @@ router.get('/', async (req, res) => {
     }
 });
 
-router.post('/', auth, async (req, res) => {
+router.post('/', adminAuth, async (req, res) => {
     try {
         const { atContentMd, atContentHtml, userOs, avatar } = req.body;
 

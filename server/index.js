@@ -8,8 +8,15 @@ const app = express();
 // 连接数据库
 connectDB();
 
+// CORS 配置 - 允许所有来源访问
+app.use(cors({
+    origin: '*',
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true
+}));
+
 // 中间件
-app.use(cors());
 app.use(express.json());
 
 // 路由

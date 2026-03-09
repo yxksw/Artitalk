@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Artitalk 生产环境测试 - artitalk.050815.xyz</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        h1 {
+            color: #667eea;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+        }
+        .api-info {
+            background: #f0f4ff;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #667eea;
+        }
+        .api-info code {
+            background: #e0e7ff;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+        }
+        .section {
+            margin: 25px 0;
+            padding: 20px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            background: #fafafa;
+        }
+        .section h2 {
+            margin-top: 0;
+            color: #764ba2;
+            font-size: 1.3em;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 5px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .error {
+            color: #e74c3c;
+            background: #fdf2f2;
+            padding: 10px;
+            border-radius: 6px;
+            margin: 10px 0;
+            border-left: 4px solid #e74c3c;
+        }
+        .success {
+            color: #27ae60;
+            background: #f0fff4;
+            padding: 10px;
+            border-radius: 6px;
+            margin: 10px 0;
+            border-left: 4px solid #27ae60;
+        }
+        .info {
+            color: #3498db;
+            background: #ebf5fb;
+            padding: 10px;
+            border-radius: 6px;
+            margin: 10px 0;
+            border-left: 4px solid #3498db;
+        }
+        .warning {
+            color: #f39c12;
+            background: #fef9e7;
+            padding: 10px;
+            border-radius: 6px;
+            margin: 10px 0;
+            border-left: 4px solid #f39c12;
+        }
+        .admin-badge {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .user-badge {
+            background: #95a5a6;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+        }
+        .shuoshuo-item {
+            background: white;
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+        }
+        .shuoshuo-item:hover {
+            transform: translateX(5px);
+        }
+        .shuoshuo-content {
+            font-size: 16px;
+            margin-bottom: 10px;
+            color: #333;
+        }
+        .shuoshuo-meta {
+            color: #888;
+            font-size: 13px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .shuoshuo-author {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .shuoshuo-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #667eea;
+        }
+        .loading::after {
+            content: '';
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #667eea;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 1s linear infinite;
+            margin-left: 10px;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 Artitalk 生产环境测试</h1>
+        <p class="subtitle">测试后端服务: artitalk.050815.xyz</p>
+        
+        <div class="api-info">
+            <strong>API 地址:</strong> <code>https://artitalk.050815.xyz/api</code>
+            <br>
+            <strong>状态:</strong> <span id="apiStatus">检测中...</span>
+        </div>
+
+        <!-- 用户认证区域 -->
+        <div class="section" id="authSection">
+            <h2>🔐 用户认证</h2>
+            <div id="loginForm">
+                <input type="text" id="username" placeholder="用户名">
+                <input type="password" id="password" placeholder="密码">
+                <div>
+                    <button onclick="register()">📝 注册</button>
+                    <button onclick="login()">🔑 登录</button>
+                </div>
+            </div>
+            <div id="userInfo" class="hidden">
+                <div class="info">
+                    <strong>当前用户:</strong> <span id="currentUsername"></span>
+                    <span id="userRoleBadge"></span>
+                    <br>
+                    <strong>Token:</strong> <span id="userToken" style="font-size: 12px; word-break: break-all;"></span>
+                </div>
+                <button onclick="logout()">🚪 退出登录</button>
+                <button onclick="getUserInfo()">👤 获取用户信息</button>
+            </div>
+            <div id="authMessage"></div>
+        </div>
+
+        <!-- 发布说说区域（仅管理员可见） -->
+        <div class="section hidden" id="postSection">
+            <h2>✍️ 发布说说 <span class="admin-badge">管理员</span></h2>
+            <textarea id="content" rows="4" placeholder="分享你的新鲜事..."></textarea>
+            <div>
+                <button onclick="postShuoshuo()">🚀 发布</button>
+                <button onclick="postWithMarkdown()">📝 发布 (Markdown)</button>
+            </div>
+            <div id="postMessage"></div>
+        </div>
+
+        <!-- 非管理员提示 -->
+        <div class="section hidden" id="noPermissionSection">
+            <div class="warning">
+                <h3>⚠️ 权限不足</h3>
+                <p>您当前是普通用户，只有管理员可以发布说说。</p>
+                <p>如需管理员权限，请联系网站管理员。</p>
+            </div>
+        </div>
+
+        <!-- 说说列表区域 -->
+        <div class="section">
+            <h2>📋 说说列表</h2>
+            <div style="margin-bottom: 15px;">
+                <button onclick="loadShuoshuoList()">🔄 刷新列表</button>
+                <button onclick="loadMore()">⬇️ 加载更多</button>
+                <span style="margin-left: 10px; color: #666;">
+                    第 <span id="currentPage">1</span> 页
+                </span>
+            </div>
+            <div id="shuoshuoList">
+                <div class="loading">正在加载...</div>
+            </div>
+        </div>
+
+        <!-- API 测试区域 -->
+        <div class="section">
+            <h2>🔧 API 测试</h2>
+            <div>
+                <button onclick="testAPI()">🧪 测试 API 连通性</button>
+                <button onclick="clearLog()">🗑️ 清空日志</button>
+            </div>
+            <div id="apiTestResult" style="margin-top: 15px;"></div>
+        </div>
+    </div>
+
+    <script>
+        // 配置
+        const API_BASE_URL = 'https://artitalk.050815.xyz/api';
+        let currentPage = 0;
+        let currentUser = null;
+        let authToken = localStorage.getItem('artitalk_token');
+
+        // 页面加载时初始化
+        window.onload = function() {
+            checkAPIStatus();
+            loadShuoshuoList();
+            if (authToken) {
+                currentUser = JSON.parse(localStorage.getItem('artitalk_user') || '{}');
+                showLoggedIn();
+            }
+        };
+
+        // 检查 API 状态
+        async function checkAPIStatus() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/shuoshuo?page=0&pageSize=1`);
+                if (response.ok) {
+                    document.getElementById('apiStatus').innerHTML = '<span style="color: #27ae60;">✅ 正常</span>';
+                } else {
+                    document.getElementById('apiStatus').innerHTML = '<span style="color: #e74c3c;">❌ 异常</span>';
+                }
+            } catch (error) {
+                document.getElementById('apiStatus').innerHTML = '<span style="color: #e74c3c;">❌ 无法连接</span>';
+            }
+        }
+
+        // 注册
+        async function register() {
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            const messageDiv = document.getElementById('authMessage');
+
+            if (!username || !password) {
+                showMessage(messageDiv, '请输入用户名和密码', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    authToken = data.token;
+                    currentUser = data.user;
+                    localStorage.setItem('artitalk_token', authToken);
+                    localStorage.setItem('artitalk_user', JSON.stringify(currentUser));
+                    showMessage(messageDiv, '✅ 注册成功！', 'success');
+                    showLoggedIn();
+                } else {
+                    showMessage(messageDiv, `❌ ${data.message || '注册失败'}`, 'error');
+                }
+            } catch (error) {
+                showMessage(messageDiv, `❌ 网络错误: ${error.message}`, 'error');
+            }
+        }
+
+        // 登录
+        async function login() {
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            const messageDiv = document.getElementById('authMessage');
+
+            if (!username || !password) {
+                showMessage(messageDiv, '请输入用户名和密码', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    authToken = data.token;
+                    currentUser = data.user;
+                    localStorage.setItem('artitalk_token', authToken);
+                    localStorage.setItem('artitalk_user', JSON.stringify(currentUser));
+                    showMessage(messageDiv, '✅ 登录成功！', 'success');
+                    showLoggedIn();
+                } else {
+                    showMessage(messageDiv, `❌ ${data.message || '登录失败'}`, 'error');
+                }
+            } catch (error) {
+                showMessage(messageDiv, `❌ 网络错误: ${error.message}`, 'error');
+            }
+        }
+
+        // 退出登录
+        function logout() {
+            authToken = null;
+            currentUser = null;
+            localStorage.removeItem('artitalk_token');
+            localStorage.removeItem('artitalk_user');
+            document.getElementById('loginForm').classList.remove('hidden');
+            document.getElementById('userInfo').classList.add('hidden');
+            document.getElementById('postSection').classList.add('hidden');
+            document.getElementById('noPermissionSection').classList.add('hidden');
+            showMessage(document.getElementById('authMessage'), '✅ 已退出登录', 'info');
+        }
+
+        // 显示已登录状态
+        function showLoggedIn() {
+            document.getElementById('loginForm').classList.add('hidden');
+            document.getElementById('userInfo').classList.remove('hidden');
+            document.getElementById('currentUsername').textContent = currentUser?.username || '未知';
+            document.getElementById('userToken').textContent = authToken?.substring(0, 20) + '...' || '';
+            
+            // 显示角色徽章
+            const isAdmin = currentUser?.role === 'admin';
+            document.getElementById('userRoleBadge').innerHTML = isAdmin 
+                ? '<span class="admin-badge">管理员</span>' 
+                : '<span class="user-badge">普通用户</span>';
+            
+            // 根据角色显示不同区域
+            if (isAdmin) {
+                document.getElementById('postSection').classList.remove('hidden');
+                document.getElementById('noPermissionSection').classList.add('hidden');
+            } else {
+                document.getElementById('postSection').classList.add('hidden');
+                document.getElementById('noPermissionSection').classList.remove('hidden');
+            }
+        }
+
+        // 获取用户信息
+        async function getUserInfo() {
+            const messageDiv = document.getElementById('authMessage');
+            try {
+                const response = await fetch(`${API_BASE_URL}/auth/me`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showMessage(messageDiv, `👤 用户信息: ${JSON.stringify(data, null, 2)}`, 'info');
+                } else {
+                    showMessage(messageDiv, `❌ ${data.message}`, 'error');
+                }
+            } catch (error) {
+                showMessage(messageDiv, `❌ 错误: ${error.message}`, 'error');
+            }
+        }
+
+        // 发布说说
+        async function postShuoshuo() {
+            const content = document.getElementById('content').value.trim();
+            const messageDiv = document.getElementById('postMessage');
+
+            if (!content) {
+                showMessage(messageDiv, '请输入内容', 'error');
+                return;
+            }
+
+            await createShuoshuo(content, content);
+        }
+
+        // 发布 Markdown 格式说说
+        async function postWithMarkdown() {
+            const content = document.getElementById('content').value.trim();
+            const messageDiv = document.getElementById('postMessage');
+
+            if (!content) {
+                showMessage(messageDiv, '请输入内容', 'error');
+                return;
+            }
+
+            // 简单的 Markdown 转换
+            let html = content
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                .replace(/`(.*?)`/g, '<code>$1</code>')
+                .replace(/\n/g, '<br>');
+
+            await createShuoshuo(content, html);
+        }
+
+        // 创建说说
+        async function createShuoshuo(md, html) {
+            const messageDiv = document.getElementById('postMessage');
+            const userOs = getOperatingSystem();
+            const avatar = currentUser?.img || 'https://fastly.jsdelivr.net/gh/drew233/cdn/logol.png';
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/shuoshuo`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({
+                        atContentMd: md,
+                        atContentHtml: html,
+                        userOs: userOs,
+                        avatar: avatar
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showMessage(messageDiv, '✅ 发布成功！', 'success');
+                    document.getElementById('content').value = '';
+                    loadShuoshuoList();
+                } else {
+                    showMessage(messageDiv, `❌ ${data.message || '发布失败'}`, 'error');
+                }
+            } catch (error) {
+                showMessage(messageDiv, `❌ 网络错误: ${error.message}`, 'error');
+            }
+        }
+
+        // 加载说说列表
+        async function loadShuoshuoList() {
+            const listDiv = document.getElementById('shuoshuoList');
+            listDiv.innerHTML = '<div class="loading">正在加载...</div>';
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/shuoshuo?page=${currentPage}&pageSize=5`);
+                const shuoshuos = await response.json();
+
+                if (shuoshuos.length === 0) {
+                    if (currentPage === 0) {
+                        listDiv.innerHTML = '<p style="text-align: center; color: #999;">暂无说说，管理员快来发布第一条吧！</p>';
+                    } else {
+                        listDiv.innerHTML += '<p style="text-align: center; color: #999;">没有更多了</p>';
+                    }
+                    return;
+                }
+
+                let html = currentPage === 0 ? '' : listDiv.innerHTML.replace('<div class="loading">正在加载...</div>', '');
+                
+                shuoshuos.forEach(item => {
+                    const date = new Date(item.createdAt).toLocaleString('zh-CN');
+                    const avatar = item.attributes?.avatar || 'https://fastly.jsdelivr.net/gh/drew233/cdn/logol.png';
+                    const username = item.user?.username || '匿名';
+                    
+                    html += `
+                        <div class="shuoshuo-item">
+                            <div class="shuoshuo-content">${item.attributes?.atContentHtml || item.attributes?.atContentMd || ''}</div>
+                            <div class="shuoshuo-meta">
+                                <div class="shuoshuo-author">
+                                    <img src="${avatar}" alt="avatar" class="shuoshuo-avatar">
+                                    <span>${username}</span>
+                                    <span>•</span>
+                                    <span>${item.attributes?.userOs || 'Unknown'}</span>
+                                </div>
+                                <span>${date}</span>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                listDiv.innerHTML = html;
+            } catch (error) {
+                listDiv.innerHTML = `<div class="error">加载失败: ${error.message}</div>`;
+            }
+        }
+
+        // 加载更多
+        function loadMore() {
+            currentPage++;
+            document.getElementById('currentPage').textContent = currentPage + 1;
+            loadShuoshuoList();
+        }
+
+        // 测试 API
+        async function testAPI() {
+            const resultDiv = document.getElementById('apiTestResult');
+            resultDiv.innerHTML = '<div class="loading">测试中...</div>';
+
+            const tests = [];
+
+            // 测试 1: 根路径
+            tests.push(testEndpoint('/', 'GET', '根路径'));
+
+            // 测试 2: 说说列表
+            tests.push(testEndpoint('/shuoshuo?page=0&pageSize=1', 'GET', '说说列表'));
+
+            // 测试 3: 注册（测试用户）
+            tests.push(testEndpoint('/auth/register', 'POST', '用户注册', {
+                username: 'test_' + Date.now(),
+                password: 'test123'
+            }));
+
+            const results = await Promise.all(tests);
+            
+            let html = '<h3>测试结果</h3>';
+            results.forEach(result => {
+                const status = result.ok ? '✅' : '❌';
+                const color = result.ok ? '#27ae60' : '#e74c3c';
+                html += `<div style="margin: 10px 0; padding: 10px; background: ${result.ok ? '#f0fff4' : '#fdf2f2'}; border-radius: 6px;">
+                    <strong style="color: ${color};">${status} ${result.name}</strong>
+                    <br><small>${result.message}</small>
+                </div>`;
+            });
+
+            resultDiv.innerHTML = html;
+        }
+
+        // 测试单个端点
+        async function testEndpoint(path, method, name, body = null) {
+            try {
+                const options = {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json' }
+                };
+                if (body) options.body = JSON.stringify(body);
+
+                const response = await fetch(`${API_BASE_URL}${path}`, options);
+                const data = await response.json();
+
+                return {
+                    ok: response.ok,
+                    name: name,
+                    message: response.ok ? `HTTP ${response.status}` : `HTTP ${response.status}: ${data.message}`
+                };
+            } catch (error) {
+                return {
+                    ok: false,
+                    name: name,
+                    message: `错误: ${error.message}`
+                };
+            }
+        }
+
+        // 清空日志
+        function clearLog() {
+            document.getElementById('apiTestResult').innerHTML = '';
+        }
+
+        // 显示消息
+        function showMessage(element, message, type) {
+            element.className = type;
+            element.innerHTML = message;
+            element.style.display = 'block';
+            setTimeout(() => {
+                element.style.display = 'none';
+            }, 5000);
+        }
+
+        // 获取操作系统
+        function getOperatingSystem() {
+            const userAgent = navigator.userAgent;
+            if (userAgent.indexOf('Windows') !== -1) return 'windows';
+            if (userAgent.indexOf('Mac') !== -1) return 'Mac';
+            if (userAgent.indexOf('Linux') !== -1) return 'Linux';
+            if (userAgent.indexOf('Android') !== -1) return 'Android';
+            if (userAgent.indexOf('iOS') !== -1) return 'iOS';
+            return 'Unknown';
+        }
+    </script>
+</body>
+</html>

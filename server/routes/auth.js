@@ -34,7 +34,8 @@ router.post('/register', async (req, res) => {
                 id: user._id,
                 username: user.username,
                 img: user.img,
-                imgToken: user.imgToken
+                imgToken: user.imgToken,
+                role: user.role
             }
         });
     } catch (error) {
@@ -68,7 +69,8 @@ router.post('/login', async (req, res) => {
                 id: user._id,
                 username: user.username,
                 img: user.img,
-                imgToken: user.imgToken
+                imgToken: user.imgToken,
+                role: user.role
             }
         });
     } catch (error) {
